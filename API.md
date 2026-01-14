@@ -617,6 +617,61 @@ Get all categories with parent-child relationships.
 
 **GET** `/settings` (Protected)
 
+Returns a key/value object used by the frontend Settings page.
+
+**Response:**
+```json
+{
+  "emailNotifications": true,
+  "lowStockAlerts": true,
+  "orderNotifications": true,
+  "currency": "USD",
+  "dateFormat": "MM/DD/YYYY",
+  "timezone": "ET",
+  "autoUpdateStock": true,
+  "showOutOfStockItems": false
+}
+```
+
+### Bulk Update Settings (Recommended)
+
+**PUT** `/settings` (Protected)
+
+Upserts settings in one request (for frontend).
+
+**Request Body:**
+```json
+{
+  "emailNotifications": true,
+  "lowStockAlerts": true,
+  "orderNotifications": true,
+  "currency": "USD",
+  "dateFormat": "MM/DD/YYYY",
+  "timezone": "ET",
+  "autoUpdateStock": true,
+  "showOutOfStockItems": false
+}
+```
+
+**Response:** Same format as `GET /settings`.
+
+**cURL Example:**
+```bash
+curl -X PUT http://localhost:8000/api/settings \
+  -H "Authorization: Bearer YOUR_TOKEN_HERE" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "emailNotifications": true,
+    "lowStockAlerts": true,
+    "orderNotifications": true,
+    "currency": "USD",
+    "dateFormat": "MM/DD/YYYY",
+    "timezone": "ET",
+    "autoUpdateStock": true,
+    "showOutOfStockItems": false
+  }'
+```
+
 ### Create Setting
 
 **POST** `/settings` (Protected)
