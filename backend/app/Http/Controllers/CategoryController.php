@@ -7,12 +7,17 @@ use Illuminate\Http\Request;
 
 class CategoryController extends Controller
 {
+    // GET /api/categories
     public function index()
     {
-        $categories = Category::with(['parent', 'children'])->whereNull('parent_id')->get();
+        $categories = Category::with('children')
+            ->whereNull('parent_id')
+            ->get();
+
         return response()->json($categories);
     }
 
+    // POST /api/categories
     public function store(Request $request)
     {
         $request->validate([
@@ -22,17 +27,27 @@ class CategoryController extends Controller
             'status' => 'boolean',
         ]);
 
-        $category = Category::create($request->all());
+        // Auto-generate category_id
+        $nextId = (Category::max('id') ?? 0) + 1;
+        $categoryCode = 'CAT-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+
+        $data = array_merge($request->all(), [
+            'category_id' => $categoryCode,
+        ]);
+
+        $category = Category::create($data);
 
         return response()->json($category, 201);
     }
 
+    // GET /api/categories/{id}
     public function show($id)
     {
-        $category = Category::with(['parent', 'children', 'products'])->findOrFail($id);
+        $category = Category::with('children')->findOrFail($id);
         return response()->json($category);
     }
 
+    // PUT /api/categories/{id}
     public function update(Request $request, $id)
     {
         $category = Category::findOrFail($id);
@@ -49,6 +64,7 @@ class CategoryController extends Controller
         return response()->json($category);
     }
 
+    // DELETE /api/categories/{id}
     public function destroy($id)
     {
         $category = Category::findOrFail($id);

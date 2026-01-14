@@ -10,8 +10,9 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
+import Categories from "./pages/Categories";
 import Products from './pages/Products';
-import { Groups, Brands, Categories, Stores, Attributes, Orders, Reports, Company, Profile, Settings } from './pages';
+import { Groups, Brands, Stores, Attributes, Orders, Reports, Company, Profile, Settings } from './pages';
 
 function App() {
   return (
