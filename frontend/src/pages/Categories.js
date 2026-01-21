@@ -121,20 +121,9 @@ const Categories = () => {
                         {category.status ? "Active" : "Inactive"}
                       </span>
                     </td>
-                    <td>
-                      <button
-                        className="btn btn-secondary"
-                        onClick={() => handleEdit(category)}
-                        style={{ marginRight: "5px" }}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn btn-danger"
-                        onClick={() => handleDelete(category.id)}
-                      >
-                        Delete
-                      </button>
+                    <td className="action-icons">
+                      <button className="icon-btn" onClick={() => handleEdit(category)} title="Edit">✏️</button>
+                      <button className="icon-btn delete" onClick={() => handleDelete(category.id)} title="Delete">🗑️</button>
                     </td>
                   </tr>
                 ))}

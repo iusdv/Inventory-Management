@@ -30,7 +30,7 @@ const Profile = () => {
           last_name: names.slice(1).join(' ') || '',
           email: response.data.email || '',
           phone: response.data.phone || '',
-          role: response.data.role || 'User',
+          role: response.data.role?.name || response.data.role || 'User',
         });
       }
     } catch (error) {

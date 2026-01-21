@@ -1,94 +1,29 @@
-import React, { useState, useEffect } from 'react';
-import api from '../services/api';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 const Groups = () => {
-  const [groups, setGroups] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [showModal, setShowModal] = useState(false);
-  const [editingGroup, setEditingGroup] = useState(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    permissions: '',
-    description: '',
-  });
-
-  useEffect(() => {
-    fetchGroups();
-  }, []);
-
-  const fetchGroups = async () => {
-    try {
-      const response = await api.get('/groups');
-      setGroups(response.data);
-    } catch (error) {
-      console.error('Error fetching groups:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (editingGroup) {
-        await api.put(`/groups/${editingGroup.id}`, formData);
-      } else {
-        await api.post('/groups', formData);
-      }
-      setShowModal(false);
-      resetForm();
-      fetchGroups();
-    } catch (error) {
-      console.error('Error saving group:', error);
-      alert('Error saving group');
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm('Are you sure you want to delete this group?')) {
-      try {
-        await api.delete(`/groups/${id}`);
-        fetchGroups();
-      } catch (error) {
-        console.error('Error deleting group:', error);
-      }
-    }
-  };
-
-  const handleEdit = (group) => {
-    setEditingGroup(group);
-    setFormData({
-      name: group.name,
-      permissions: group.permissions || '',
-      description: group.description || '',
-    });
-    setShowModal(true);
-  };
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      permissions: '',
-      description: '',
-    });
-    setEditingGroup(null);
-  };
-
-  const filteredGroups = groups.filter(group =>
-    group.name?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  if (loading) return <div className="loading">Loading...</div>;
-
   return (
     <div>
       <div className="breadcrumb">🏠 Home / Groups</div>
-      
+
       <div className="card">
         <div className="card-header">
-          <h3>Manage Groups</h3>
-          <button
+          <h3>Groups Removed</h3>
+        </div>
+        <div className="card-body">
+          <p style={{ marginTop: 0 }}>
+            Groups has been replaced by Roles.
+          </p>
+          <Link to="/roles" className="btn btn-primary">
+            Go to Roles
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Groups;
             className="btn btn-primary"
             onClick={() => {
               resetForm();
@@ -122,8 +57,8 @@ const Groups = () => {
             <tbody>
               {filteredGroups.map((group) => (
                 <tr key={group.id}>
-                  <td className="text-primary">{group.name}</td>
-                  <td className="text-primary">{group.permissions || 'None'}</td>
+                  <td>{group.name}</td>
+                  <td>{Array.isArray(group.permissions) ? group.permissions.join(', ') : (group.permissions || 'None')}</td>
                   <td>{group.users_count || 0}</td>
                 </tr>
               ))}

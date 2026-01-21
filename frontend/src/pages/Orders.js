@@ -66,8 +66,8 @@ const Orders = () => {
             <tbody>
               {filteredOrders.map((order) => (
                 <tr key={order.id}>
-                  <td className="text-primary">{order.order_number}</td>
-                  <td className="text-primary">{order.customer_name}</td>
+                  <td>{order.order_number}</td>
+                  <td>{order.customer_name}</td>
                   <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
                   <td className={order.items_count <= 1 ? 'text-warning' : ''}>{order.items_count || order.order_items?.length || 0}</td>
                   <td>${parseFloat(order.total || 0).toFixed(2)}</td>

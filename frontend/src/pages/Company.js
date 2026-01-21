@@ -7,8 +7,7 @@ const Company = () => {
     tax_id: '',
     address: '',
     city: '',
-    state: '',
-    zip_code: '',
+    zip: '',
     country: '',
     phone: '',
     email: '',
@@ -36,15 +35,40 @@ const Company = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = {
+        name: company.name,
+        tax_id: company.tax_id || null,
+        address: company.address || null,
+        city: company.city || null,
+        zip: company.zip || null,
+        country: company.country || null,
+        phone: company.phone || null,
+        email: company.email || null,
+        website: company.website || null,
+        logo: company.logo || null,
+      };
+
       if (company.id) {
-        await api.put(`/company/${company.id}`, company);
+        await api.put(`/company/${company.id}`, payload);
       } else {
-        await api.post('/company', company);
+        await api.post('/company', payload);
       }
       alert('Company information saved successfully!');
     } catch (error) {
       console.error('Error saving company:', error);
-      alert('Error saving company information');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving company information');
+      }
     }
   };
 
@@ -54,7 +78,7 @@ const Company = () => {
     <div>
       <div className="breadcrumb">🏠 Home / Company</div>
       <div className="card">
-        <h3 className="text-primary">Company Information</h3>
+        <h3>Company Information</h3>
         <form onSubmit={handleSubmit} className="company-form">
           <div className="form-row">
             <div className="form-group">
@@ -75,15 +99,11 @@ const Company = () => {
               <label>City</label>
               <input type="text" value={company.city || ''} onChange={(e) => setCompany({ ...company, city: e.target.value })} />
             </div>
-            <div className="form-group">
-              <label>State</label>
-              <input type="text" value={company.state || ''} onChange={(e) => setCompany({ ...company, state: e.target.value })} />
-            </div>
           </div>
           <div className="form-row">
             <div className="form-group">
-              <label>Zip Code</label>
-              <input type="text" value={company.zip_code || ''} onChange={(e) => setCompany({ ...company, zip_code: e.target.value })} />
+              <label>Zip</label>
+              <input type="text" value={company.zip || ''} onChange={(e) => setCompany({ ...company, zip: e.target.value })} />
             </div>
             <div className="form-group">
               <label>Country</label>

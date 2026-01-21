@@ -41,7 +41,19 @@ const Brands = () => {
       fetchBrands();
     } catch (error) {
       console.error('Error saving brand:', error);
-      alert('Error saving brand');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving brand');
+      }
     }
   };
 
@@ -104,7 +116,7 @@ const Brands = () => {
             <tbody>
               {filteredBrands.map((brand) => (
                 <tr key={brand.id}>
-                  <td className="text-primary">{brand.name}</td>
+                  <td>{brand.name}</td>
                   <td>{brand.description || 'N/A'}</td>
                   <td><span className={`badge badge-${brand.status ? 'success' : 'danger'}`}>{brand.status ? 'Active' : 'Inactive'}</span></td>
                   <td className="action-icons">
@@ -128,7 +140,17 @@ const Brands = () => {
             <form onSubmit={handleSubmit}>
               <div className="form-group"><label>Brand Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required /></div>
               <div className="form-group"><label>Description</label><textarea value={formData.description} onChange={(e) => setFormData({ ...formData, description: e.target.value })} rows="3" /></div>
-              <div className="form-group"><label><input type="checkbox" checked={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.checked })} /> Active</label></div>
+              <div className="form-group switch-wrapper">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="switch-label">Active</span>
+              </div>
               <button type="submit" className="btn btn-primary">{editingBrand ? 'Update' : 'Create'}</button>
             </form>
           </div>

@@ -195,6 +195,16 @@ code {
   overflow-x: auto;
 }
 
+/* Keep table links looking like plain text (except where explicitly styled) */
+.table-container a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.table-container a:hover {
+  text-decoration: underline;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -229,7 +239,7 @@ table tr:hover {
   font-weight: 500;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -239,11 +249,19 @@ table tr:hover {
   font-size: 14px;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #3498db;
+}
+
+.form-group label input[type="checkbox"],
+.form-group label input[type="radio"] {
+  width: auto;
+  padding: 0;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 /* Auth Pages */

@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import api from '../services/api';
+import { can } from '../services/permissions';
 
 const Users = () => {
   const [users, setUsers] = useState([]);
+  const [roles, setRoles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -10,15 +12,42 @@ const Users = () => {
     name: '',
     email: '',
     password: '',
-    role: 'user',
+    role_id: '',
     phone: '',
     address: '',
     status: true,
   });
 
   useEffect(() => {
-    fetchUsers();
+    fetchInitialData();
   }, []);
+
+  const fetchInitialData = async () => {
+    try {
+      const [usersRes, rolesRes] = await Promise.all([
+        api.get('/users'),
+        api.get('/roles'),
+      ]);
+      setUsers(usersRes.data);
+      setRoles(rolesRes.data);
+    } catch (error) {
+      console.error('Error fetching users/roles:', error);
+      // fallback so at least users load
+      try {
+        const usersRes = await api.get('/users');
+        setUsers(usersRes.data);
+      } catch (e) {
+        console.error('Error fetching users:', e);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDefaultUserRoleId = () => {
+    const userRole = roles.find((r) => (r?.name || '').toLowerCase() === 'user');
+    return userRole?.id || '';
+  };
 
   const fetchUsers = async () => {
     try {
@@ -26,25 +55,49 @@ const Users = () => {
       setUsers(response.data);
     } catch (error) {
       console.error('Error fetching users:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const payload = { ...formData };
+      if (editingUser && !payload.password) {
+        delete payload.password;
+      }
+
+      if (!payload.role_id) {
+        payload.role_id = getDefaultUserRoleId();
+      }
+
+      if (!payload.role_id) {
+        alert('Please select a role');
+        return;
+      }
+
       if (editingUser) {
-        await api.put(`/users/${editingUser.id}`, formData);
+        await api.put(`/users/${editingUser.id}`, payload);
       } else {
-        await api.post('/users', formData);
+        await api.post('/users', payload);
       }
       setShowModal(false);
       resetForm();
       fetchUsers();
     } catch (error) {
       console.error('Error saving user:', error);
-      alert('Error saving user');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving user');
+      }
     }
   };
 
@@ -65,7 +118,7 @@ const Users = () => {
       name: user.name,
       email: user.email,
       password: '',
-      role: user.role,
+      role_id: user.group_id || user.role?.id || '',
       phone: user.phone || '',
       address: user.address || '',
       status: user.status,
@@ -78,7 +131,7 @@ const Users = () => {
       name: '',
       email: '',
       password: '',
-      role: 'user',
+      role_id: getDefaultUserRoleId(),
       phone: '',
       address: '',
       status: true,
@@ -88,20 +141,30 @@ const Users = () => {
 
   if (loading) return <div className="loading">Loading...</div>;
 
+  if (!can('users', 'view')) {
+    return (
+      <div className="card">
+        <div className="error-message">You do not have permission to view users.</div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="card">
         <div className="card-header">
           <h3>Users Management</h3>
-          <button
-            className="btn btn-primary"
-            onClick={() => {
-              resetForm();
-              setShowModal(true);
-            }}
-          >
-            Add User
-          </button>
+          {can('users', 'create') && (
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                resetForm();
+                setShowModal(true);
+              }}
+            >
+              Add User
+            </button>
+          )}
         </div>
         <div className="table-container">
           <table>
@@ -120,20 +183,20 @@ const Users = () => {
                 <tr key={user.id}>
                   <td>{user.name}</td>
                   <td>{user.email}</td>
-                  <td>{user.role}</td>
+                  <td>{user.role?.name || user.role || 'N/A'}</td>
                   <td>{user.phone || 'N/A'}</td>
                   <td>
                     <span className={`badge badge-${user.status ? 'success' : 'danger'}`}>
                       {user.status ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td>
-                    <button className="btn btn-secondary" onClick={() => handleEdit(user)} style={{ marginRight: '5px' }}>
-                      Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => handleDelete(user.id)}>
-                      Delete
-                    </button>
+                  <td className="action-icons">
+                    {can('users', 'update') && (
+                      <button className="icon-btn" onClick={() => handleEdit(user)} title="Edit">✏️</button>
+                    )}
+                    {can('users', 'delete') && (
+                      <button className="icon-btn delete" onClick={() => handleDelete(user.id)} title="Delete">🗑️</button>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -142,7 +205,7 @@ const Users = () => {
         </div>
       </div>
 
-      {showModal && (
+      {showModal && can('users', editingUser ? 'update' : 'create') && (
         <div className="modal-overlay">
           <div className="modal">
             <div className="modal-header">
@@ -174,19 +237,21 @@ const Users = () => {
                   type="password"
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  minLength={8}
                   required={!editingUser}
                 />
               </div>
               <div className="form-group">
                 <label>Role</label>
                 <select
-                  value={formData.role}
-                  onChange={(e) => setFormData({ ...formData, role: e.target.value })}
+                  value={formData.role_id}
+                  onChange={(e) => setFormData({ ...formData, role_id: e.target.value })}
                   required
                 >
-                  <option value="user">User</option>
-                  <option value="manager">Manager</option>
-                  <option value="admin">Admin</option>
+                  <option value="">Select Role</option>
+                  {roles.map((role) => (
+                    <option key={role.id} value={role.id}>{role.name}</option>
+                  ))}
                 </select>
               </div>
               <div className="form-group">
@@ -205,15 +270,16 @@ const Users = () => {
                   rows="3"
                 />
               </div>
-              <div className="form-group">
-                <label>
+              <div className="form-group switch-wrapper">
+                <label className="switch">
                   <input
                     type="checkbox"
                     checked={formData.status}
                     onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
                   />
-                  {' '}Active
+                  <span className="slider round"></span>
                 </label>
+                <span className="switch-label">Active</span>
               </div>
               <button type="submit" className="btn btn-primary">
                 {editingUser ? 'Update' : 'Create'}

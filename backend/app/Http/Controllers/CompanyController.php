@@ -15,13 +15,12 @@ class CompanyController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'city' => 'nullable|string',
-            'state' => 'nullable|string',
             'zip' => 'nullable|string',
             'country' => 'nullable|string',
             'logo' => 'nullable|string',
@@ -32,9 +31,9 @@ class CompanyController extends Controller
         $company = Company::first();
         
         if ($company) {
-            $company->update($request->all());
+            $company->update($data);
         } else {
-            $company = Company::create($request->all());
+            $company = Company::create($data);
         }
 
         return response()->json($company);
@@ -44,13 +43,12 @@ class CompanyController extends Controller
     {
         $company = Company::findOrFail($id);
 
-        $request->validate([
+        $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'email' => 'nullable|email',
             'phone' => 'nullable|string',
             'address' => 'nullable|string',
             'city' => 'nullable|string',
-            'state' => 'nullable|string',
             'zip' => 'nullable|string',
             'country' => 'nullable|string',
             'logo' => 'nullable|string',
@@ -58,7 +56,7 @@ class CompanyController extends Controller
             'tax_id' => 'nullable|string',
         ]);
 
-        $company->update($request->all());
+        $company->update($data);
 
         return response()->json($company);
     }

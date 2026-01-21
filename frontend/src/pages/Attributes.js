@@ -32,17 +32,43 @@ const Attributes = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const normalizedType = formData.type === 'dropdown' ? 'select' : formData.type;
+      const valuesString = (formData.values ?? '').toString();
+      const valuesArray = valuesString
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+      const payload = {
+        name: formData.name,
+        type: normalizedType,
+        values: valuesArray.length ? valuesArray : null,
+        status: !!formData.status,
+      };
+
       if (editingAttribute) {
-        await api.put(`/attributes/${editingAttribute.id}`, formData);
+        await api.put(`/attributes/${editingAttribute.id}`, payload);
       } else {
-        await api.post('/attributes', formData);
+        await api.post('/attributes', payload);
       }
       setShowModal(false);
       resetForm();
       fetchAttributes();
     } catch (error) {
       console.error('Error saving attribute:', error);
-      alert('Error saving attribute');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving attribute');
+      }
     }
   };
 
@@ -59,11 +85,16 @@ const Attributes = () => {
 
   const handleEdit = (attr) => {
     setEditingAttribute(attr);
+
+    const valuesString = Array.isArray(attr.values)
+      ? attr.values.join(', ')
+      : (attr.values || '');
+
     setFormData({
       name: attr.name,
-      type: attr.type || 'dropdown',
-      values: attr.values || '',
-      status: attr.status,
+      type: attr.type === 'select' ? 'dropdown' : (attr.type || 'dropdown'),
+      values: valuesString,
+      status: typeof attr.status === 'boolean' ? attr.status : true,
     });
     setShowModal(true);
   };
@@ -107,8 +138,8 @@ const Attributes = () => {
             <tbody>
               {filteredAttributes.map((attr) => (
                 <tr key={attr.id}>
-                  <td className="text-primary">{attr.name}</td>
-                  <td className="text-primary">{attr.type || 'Text'}</td>
+                  <td>{attr.name}</td>
+                  <td>{attr.type || 'Text'}</td>
                   <td>{attr.values || 'N/A'}</td>
                   <td><span className={`badge badge-${attr.status ? 'success' : 'danger'}`}>{attr.status ? 'Active' : 'Inactive'}</span></td>
                   <td className="action-icons">
@@ -141,7 +172,17 @@ const Attributes = () => {
                 </select>
               </div>
               <div className="form-group"><label>Values (comma separated)</label><input type="text" value={formData.values} onChange={(e) => setFormData({ ...formData, values: e.target.value })} placeholder="e.g., Red, Blue, Green" /></div>
-              <div className="form-group"><label><input type="checkbox" checked={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.checked })} /> Active</label></div>
+              <div className="form-group switch-wrapper">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="switch-label">Active</span>
+              </div>
               <button type="submit" className="btn btn-primary">{editingAttribute ? 'Update' : 'Create'}</button>
             </form>
           </div>
