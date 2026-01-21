@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
+import { can } from '../services/permissions';
 
 const Sidebar = () => {
   const location = useLocation();
@@ -14,7 +15,7 @@ const Sidebar = () => {
   const menuItems = [
     { path: '/dashboard', label: 'Dashboard', icon: '📊' },
     { path: '/users', label: 'Users', icon: '👥' },
-    { path: '/groups', label: 'Groups', icon: '👨‍👩‍👧‍👦' },
+    { path: '/roles', label: 'Roles', icon: '🛡️' },
     { path: '/brands', label: 'Brands', icon: '🏷️' },
     { path: '/categories', label: 'Categories', icon: '📁' },
     { path: '/stores', label: 'Stores', icon: '🏪' },
@@ -27,13 +28,35 @@ const Sidebar = () => {
     { path: '/settings', label: 'Settings', icon: '⚙️' },
   ];
 
+  const permissionKeyByPath = {
+    '/users': 'users',
+    '/roles': 'roles',
+    '/brands': 'brands',
+    '/categories': 'categories',
+    '/stores': 'stores',
+    '/attributes': 'attributes',
+    '/products': 'products',
+    '/orders': 'orders',
+    '/reports': 'reports',
+    '/company': 'company',
+    '/profile': 'profile',
+    '/settings': 'settings',
+  };
+
+  const visibleMenuItems = menuItems.filter((item) => {
+    if (item.path === '/dashboard') return true;
+    const key = permissionKeyByPath[item.path];
+    if (!key) return true;
+    return can(key, 'view');
+  });
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
         <h2>📦 Inventory System</h2>
       </div>
       <ul className="sidebar-menu">
-        {menuItems.map((item) => (
+        {visibleMenuItems.map((item) => (
           <li key={item.path}>
             <Link
               to={item.path}

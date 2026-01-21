@@ -15,13 +15,14 @@ class AttributeController extends Controller
 
     public function store(Request $request)
     {
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
             'type' => 'required|string|in:text,select,color,size',
             'values' => 'nullable|array',
+            'status' => 'boolean',
         ]);
 
-        $attribute = Attribute::create($request->all());
+        $attribute = Attribute::create($data);
 
         return response()->json($attribute, 201);
     }
@@ -36,13 +37,14 @@ class AttributeController extends Controller
     {
         $attribute = Attribute::findOrFail($id);
 
-        $request->validate([
+        $data = $request->validate([
             'name' => 'sometimes|required|string|max:255',
             'type' => 'sometimes|required|string|in:text,select,color,size',
             'values' => 'nullable|array',
+            'status' => 'boolean',
         ]);
 
-        $attribute->update($request->all());
+        $attribute->update($data);
 
         return response()->json($attribute);
     }

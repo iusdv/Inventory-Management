@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Groups
     Route::apiResource('groups', GroupController::class);
+
+    // Roles (alias of Groups)
+    Route::apiResource('roles', GroupController::class);
     
     // Brands
     Route::apiResource('brands', BrandController::class);

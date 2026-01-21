@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../services/api';
 
 const Products = () => {
@@ -45,17 +46,48 @@ const Products = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      const toNullableNumber = (value) => {
+        if (value === '' || value === null || value === undefined) return null;
+        const n = Number(value);
+        return Number.isFinite(n) ? n : null;
+      };
+
+      const payload = {
+        name: formData.name,
+        sku: formData.sku,
+        description: formData.description || null,
+        category_id: toNullableNumber(formData.category_id),
+        brand_id: toNullableNumber(formData.brand_id),
+        price: toNullableNumber(formData.price),
+        cost: toNullableNumber(formData.cost),
+        quantity: toNullableNumber(formData.quantity),
+        min_quantity: toNullableNumber(formData.min_quantity),
+        status: !!formData.status,
+      };
+
       if (editingProduct) {
-        await api.put(`/products/${editingProduct.id}`, formData);
+        await api.put(`/products/${editingProduct.id}`, payload);
       } else {
-        await api.post('/products', formData);
+        await api.post('/products', payload);
       }
       setShowModal(false);
       resetForm();
       fetchData();
     } catch (error) {
       console.error('Error saving product:', error);
-      alert('Error saving product');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving product');
+      }
     }
   };
 
@@ -132,7 +164,9 @@ const Products = () => {
               {products.map((product) => (
                 <tr key={product.id}>
                   <td>{product.sku}</td>
-                  <td>{product.name}</td>
+                  <td>
+                    <Link to={`/products/${product.id}`}>{product.name}</Link>
+                  </td>
                   <td>{product.category?.name || 'N/A'}</td>
                   <td>{product.brand?.name || 'N/A'}</td>
                   <td>${product.price}</td>
@@ -142,13 +176,9 @@ const Products = () => {
                       {product.status ? 'Active' : 'Inactive'}
                     </span>
                   </td>
-                  <td>
-                    <button className="btn btn-secondary" onClick={() => handleEdit(product)} style={{ marginRight: '5px' }}>
-                      Edit
-                    </button>
-                    <button className="btn btn-danger" onClick={() => handleDelete(product.id)}>
-                      Delete
-                    </button>
+                  <td className="action-icons">
+                    <button className="icon-btn" onClick={() => handleEdit(product)} title="Edit">✏️</button>
+                    <button className="icon-btn delete" onClick={() => handleDelete(product.id)} title="Delete">🗑️</button>
                   </td>
                 </tr>
               ))}
@@ -210,6 +240,17 @@ const Products = () => {
               <div className="form-group">
                 <label>Min Quantity</label>
                 <input type="number" value={formData.min_quantity} onChange={(e) => setFormData({ ...formData, min_quantity: e.target.value })} />
+              </div>
+              <div className="form-group switch-wrapper">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={!!formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="switch-label">Active</span>
               </div>
               <button type="submit" className="btn btn-primary">
                 {editingProduct ? 'Update' : 'Create'}

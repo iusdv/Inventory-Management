@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
@@ -44,7 +45,7 @@ class OrderController extends Controller
 
             $order = Order::create([
                 'order_number' => 'ORD-' . time() . '-' . rand(1000, 9999),
-                'user_id' => auth()->id(),
+                'user_id' => Auth::id(),
                 'store_id' => $request->store_id,
                 'customer_name' => $request->customer_name,
                 'customer_email' => $request->customer_email,

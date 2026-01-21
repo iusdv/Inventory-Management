@@ -11,6 +11,9 @@ const Stores = () => {
     name: '',
     location: '',
     manager: '',
+    address: '',
+    city: '',
+    zip: '',
     phone: '',
     email: '',
     status: true,
@@ -44,7 +47,19 @@ const Stores = () => {
       fetchStores();
     } catch (error) {
       console.error('Error saving store:', error);
-      alert('Error saving store');
+      const message = error?.response?.data?.message;
+      const errors = error?.response?.data?.errors;
+
+      if (errors && typeof errors === 'object') {
+        const lines = Object.values(errors)
+          .flat()
+          .filter(Boolean);
+        alert(lines.join('\n'));
+      } else if (message) {
+        alert(message);
+      } else {
+        alert('Error saving store');
+      }
     }
   };
 
@@ -65,6 +80,9 @@ const Stores = () => {
       name: store.name,
       location: store.location || '',
       manager: store.manager || '',
+      address: store.address || '',
+      city: store.city || '',
+      zip: store.zip || '',
       phone: store.phone || '',
       email: store.email || '',
       status: store.status,
@@ -73,7 +91,7 @@ const Stores = () => {
   };
 
   const resetForm = () => {
-    setFormData({ name: '', location: '', manager: '', phone: '', email: '', status: true });
+    setFormData({ name: '', location: '', manager: '', address: '', city: '', zip: '', phone: '', email: '', status: true });
     setEditingStore(null);
   };
 
@@ -112,9 +130,9 @@ const Stores = () => {
             <tbody>
               {filteredStores.map((store) => (
                 <tr key={store.id}>
-                  <td className="text-primary">{store.name}</td>
+                  <td>{store.name}</td>
                   <td>{store.location || 'N/A'}</td>
-                  <td className="text-primary">{store.manager || 'N/A'}</td>
+                  <td>{store.manager || 'N/A'}</td>
                   <td className="text-primary">{store.phone || 'N/A'}</td>
                   <td><span className={`badge badge-${store.status ? 'success' : 'danger'}`}>{store.status ? 'Active' : 'Inactive'}</span></td>
                   <td className="action-icons">
@@ -139,9 +157,22 @@ const Stores = () => {
               <div className="form-group"><label>Store Name</label><input type="text" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} required /></div>
               <div className="form-group"><label>Location</label><input type="text" value={formData.location} onChange={(e) => setFormData({ ...formData, location: e.target.value })} /></div>
               <div className="form-group"><label>Manager</label><input type="text" value={formData.manager} onChange={(e) => setFormData({ ...formData, manager: e.target.value })} /></div>
+              <div className="form-group"><label>Address</label><input type="text" value={formData.address} onChange={(e) => setFormData({ ...formData, address: e.target.value })} /></div>
+              <div className="form-group"><label>City</label><input type="text" value={formData.city} onChange={(e) => setFormData({ ...formData, city: e.target.value })} /></div>
+              <div className="form-group"><label>Zip</label><input type="text" value={formData.zip} onChange={(e) => setFormData({ ...formData, zip: e.target.value })} /></div>
               <div className="form-group"><label>Phone</label><input type="text" value={formData.phone} onChange={(e) => setFormData({ ...formData, phone: e.target.value })} /></div>
               <div className="form-group"><label>Email</label><input type="email" value={formData.email} onChange={(e) => setFormData({ ...formData, email: e.target.value })} /></div>
-              <div className="form-group"><label><input type="checkbox" checked={formData.status} onChange={(e) => setFormData({ ...formData, status: e.target.checked })} /> Active</label></div>
+              <div className="form-group switch-wrapper">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={formData.status}
+                    onChange={(e) => setFormData({ ...formData, status: e.target.checked })}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="switch-label">Active</span>
+              </div>
               <button type="submit" className="btn btn-primary">{editingStore ? 'Update' : 'Create'}</button>
             </form>
           </div>

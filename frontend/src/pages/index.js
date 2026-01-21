@@ -1,5 +1,5 @@
 // Export all page components from their individual files
-export { default as Groups } from './Groups';
+export { default as Roles } from './Roles';
 export { default as Brands } from './Brands';
 export { default as Categories } from './Categories';
 export { default as Stores } from './Stores';

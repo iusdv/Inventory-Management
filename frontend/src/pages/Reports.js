@@ -119,7 +119,7 @@ const Reports = () => {
             <tbody>
               {topProducts.map((product, index) => (
                 <tr key={index}>
-                  <td className="text-primary">{product.name}</td>
+                  <td>{product.name}</td>
                   <td>{product.units_sold}</td>
                   <td>${product.revenue?.toLocaleString()}</td>
                 </tr>
