@@ -7,54 +7,96 @@ const Reports = () => {
   const [topProducts, setTopProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [period, setPeriod] = useState('6months');
+  const [topProductsScope, setTopProductsScope] = useState('paid');
+
+  const maxRevenue = Math.max(0, ...salesData.map((d) => Number(d?.revenue || 0)));
+  const maxSalesCount = Math.max(0, ...salesData.map((d) => Number(d?.sales || 0)));
+
+  const revenueAxisMax = Math.max(1, Math.ceil(maxRevenue * 1.1));
+  const salesCountAxisMax = Math.max(1, Math.ceil(maxSalesCount));
 
   useEffect(() => {
     fetchReportData();
-  }, [period]);
+  }, [period, topProductsScope]);
 
   const fetchReportData = async () => {
+    setLoading(true);
     try {
-      const [salesRes, topRes] = await Promise.all([
-        api.get('/reports/sales'),
-        api.get('/reports/top-products'),
-      ]);
-      
-      // Use API data or fallback to sample data
-      const sampleSales = [
-        { name: 'Jan', sales: 4000, orders: 240 },
-        { name: 'Feb', sales: 3000, orders: 200 },
-        { name: 'Mar', sales: 5000, orders: 350 },
-        { name: 'Apr', sales: 4500, orders: 300 },
-        { name: 'May', sales: 6000, orders: 400 },
-        { name: 'Jun', sales: 5500, orders: 380 },
-      ];
-      
-      const sampleTopProducts = [
-        { name: 'iPhone 14 Pro', units_sold: 245, revenue: 244755 },
-        { name: 'Samsung Galaxy S23', units_sold: 189, revenue: 169911 },
-        { name: 'MacBook Pro', units_sold: 156, revenue: 389844 },
-        { name: 'Nike Air Max', units_sold: 432, revenue: 64800 },
-      ];
+      const now = new Date();
+      const start = new Date(now);
 
-      setSalesData(salesRes.data?.length ? salesRes.data : sampleSales);
-      setTopProducts(topRes.data?.length ? topRes.data : sampleTopProducts);
+      const toDateOnly = (d) => {
+        const yyyy = d.getFullYear();
+        const mm = String(d.getMonth() + 1).padStart(2, '0');
+        const dd = String(d.getDate()).padStart(2, '0');
+        return `${yyyy}-${mm}-${dd}`;
+      };
+
+      let revenueParams = { period: 'month', limit: 6 };
+      if (period === 'year') {
+        start.setMonth(start.getMonth() - 11);
+        start.setDate(1);
+        revenueParams = { period: 'month', limit: 12, start_date: toDateOnly(start), end_date: toDateOnly(now) };
+      } else if (period === 'month') {
+        start.setDate(1);
+        revenueParams = { period: 'day', limit: 31, start_date: toDateOnly(start), end_date: toDateOnly(now) };
+      } else {
+        // 6months
+        start.setMonth(start.getMonth() - 5);
+        start.setDate(1);
+        revenueParams = { period: 'month', limit: 6, start_date: toDateOnly(start), end_date: toDateOnly(now) };
+      }
+
+      const [paidSalesRes, completedRevenueRes, topRes] = await Promise.all([
+        api.get('/reports/revenue', { params: { ...revenueParams, scope: 'paid' } }),
+        api.get('/reports/revenue', { params: { ...revenueParams, scope: 'completed' } }),
+        api.get('/reports/top-products', { params: { limit: 10, scope: topProductsScope, start_date: revenueParams.start_date, end_date: revenueParams.end_date } }),
+      ]);
+
+      const formatPeriodLabel = (p) => {
+        if (!p) return '';
+        // month: YYYY-MM, day: YYYY-MM-DD
+        if (p.length === 7) {
+          const d = new Date(`${p}-01T00:00:00`);
+          return d.toLocaleString(undefined, { month: 'short' });
+        }
+        if (p.length === 10) {
+          const d = new Date(`${p}T00:00:00`);
+          return d.toLocaleString(undefined, { month: 'short', day: '2-digit' });
+        }
+        return p;
+      };
+
+      const paidRows = Array.isArray(paidSalesRes.data) ? paidSalesRes.data : [];
+      const completedRows = Array.isArray(completedRevenueRes.data) ? completedRevenueRes.data : [];
+
+      const salesByPeriod = new Map(paidRows.map((r) => [r.period, Number(r.order_count || 0)]));
+      const revenueByPeriod = new Map(completedRows.map((r) => [r.period, Number(r.total_revenue || 0)]));
+
+      const allPeriods = Array.from(
+        new Set([
+          ...paidRows.map((r) => r.period),
+          ...completedRows.map((r) => r.period),
+        ])
+      );
+
+      allPeriods.sort();
+
+      setSalesData(
+        allPeriods.map((p) => ({
+          name: formatPeriodLabel(p),
+          // sales = count of paid orders
+          sales: salesByPeriod.get(p) ?? 0,
+          // revenue = sum of totals for completed orders
+          revenue: revenueByPeriod.get(p) ?? 0,
+        }))
+      );
+
+      setTopProducts(Array.isArray(topRes.data) ? topRes.data : []);
     } catch (error) {
       console.error('Error fetching reports:', error);
-      // Fallback data
-      setSalesData([
-        { name: 'Jan', sales: 4000, orders: 240 },
-        { name: 'Feb', sales: 3000, orders: 200 },
-        { name: 'Mar', sales: 5000, orders: 350 },
-        { name: 'Apr', sales: 4500, orders: 300 },
-        { name: 'May', sales: 6000, orders: 400 },
-        { name: 'Jun', sales: 5500, orders: 380 },
-      ]);
-      setTopProducts([
-        { name: 'iPhone 14 Pro', units_sold: 245, revenue: 244755 },
-        { name: 'Samsung Galaxy S23', units_sold: 189, revenue: 169911 },
-        { name: 'MacBook Pro', units_sold: 156, revenue: 389844 },
-        { name: 'Nike Air Max', units_sold: 432, revenue: 64800 },
-      ]);
+      setSalesData([]);
+      setTopProducts([]);
     } finally {
       setLoading(false);
     }
@@ -82,10 +124,30 @@ const Reports = () => {
             <BarChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <YAxis
+                allowDecimals={false}
+                domain={[0, salesCountAxisMax]}
+              />
+              <Tooltip formatter={(value, name) => [Number(value || 0).toLocaleString(), name]} />
               <Legend />
-              <Bar dataKey="sales" fill="#4285f4" name="sales" />
+              <Bar dataKey="sales" fill="#4285f4" name="Sales" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="card chart-card">
+          <h4>Revenue Overview</h4>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={salesData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis
+                domain={[0, revenueAxisMax]}
+                tickFormatter={(v) => Number(v).toLocaleString()}
+              />
+              <Tooltip formatter={(value, name) => [Number(value || 0).toLocaleString(), name]} />
+              <Legend />
+              <Bar dataKey="revenue" fill="#7e57c2" name="Revenue" />
             </BarChart>
           </ResponsiveContainer>
         </div>
@@ -96,17 +158,34 @@ const Reports = () => {
             <LineChart data={salesData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
+              <YAxis
+                allowDecimals={false}
+                domain={[0, salesCountAxisMax]}
+              />
+              <Tooltip formatter={(value, name) => [Number(value || 0).toLocaleString(), name]} />
               <Legend />
-              <Line type="monotone" dataKey="orders" stroke="#34a853" strokeWidth={2} name="orders" />
+              <Line type="monotone" dataKey="sales" stroke="#34a853" strokeWidth={2} name="Sales" />
             </LineChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="card">
-        <h4>Top Selling Products</h4>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <h4 style={{ margin: 0 }}>Top Selling Products</h4>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontSize: 12, opacity: 0.75 }}>Scope:</span>
+            <select
+              value={topProductsScope}
+              onChange={(e) => setTopProductsScope(e.target.value)}
+              className="period-select"
+              style={{ minWidth: 160 }}
+            >
+              <option value="paid">Paid orders</option>
+              <option value="completed">Completed orders</option>
+            </select>
+          </div>
+        </div>
         <div className="table-container">
           <table>
             <thead>
@@ -121,7 +200,7 @@ const Reports = () => {
                 <tr key={index}>
                   <td>{product.name}</td>
                   <td>{product.units_sold}</td>
-                  <td>${product.revenue?.toLocaleString()}</td>
+                  <td>${Number(product.revenue || 0).toLocaleString()}</td>
                 </tr>
               ))}
             </tbody>

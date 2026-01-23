@@ -12,7 +12,10 @@ class OrderController extends Controller
 {
     public function index()
     {
-        $orders = Order::with(['user', 'store', 'orderItems.product'])->orderBy('created_at', 'desc')->get();
+        $orders = Order::with(['user', 'store', 'orderItems.product'])
+            ->withCount('orderItems as items_count')
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json($orders);
     }
 

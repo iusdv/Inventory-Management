@@ -13,6 +13,7 @@ import Users from './pages/Users';
 import Categories from "./pages/Categories";
 import Products from './pages/Products';
 import ProductDetails from './pages/ProductDetails';
+import OrderDetails from './pages/OrderDetails';
 import { Roles, Brands, Stores, Attributes, Orders, Reports, Company, Profile, Settings } from './pages';
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
                       <Route path="/products" element={<Products />} />
                       <Route path="/products/:id" element={<ProductDetails />} />
                       <Route path="/orders" element={<Orders />} />
+                      <Route path="/orders/:id" element={<OrderDetails />} />
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/company" element={<Company />} />
                       <Route path="/profile" element={<Profile />} />

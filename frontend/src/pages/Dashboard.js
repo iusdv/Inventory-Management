@@ -45,6 +45,17 @@ const Dashboard = () => {
     }
   };
 
+  const formatPctChange = (pct) => {
+    if (pct === null || pct === undefined || Number.isNaN(Number(pct))) {
+      return { text: '—', className: 'stat-neutral' };
+    }
+
+    const value = Number(pct);
+    if (value > 0) return { text: `↗ +${value.toFixed(1)}%`, className: 'stat-positive' };
+    if (value < 0) return { text: `↘ ${value.toFixed(1)}%`, className: 'stat-negative' };
+    return { text: '→ 0.0%', className: 'stat-neutral' };
+  };
+
   const getStatusClass = (status) => {
     switch (status?.toLowerCase()) {
       case 'completed': return 'badge-success';
@@ -70,32 +81,44 @@ const Dashboard = () => {
         <div className="stat-card stat-card-blue">
           <div className="stat-content">
             <h4>Total Products</h4>
-            <div className="value">{stats?.stats?.totalProducts || 1234}</div>
-            <div className="stat-change stat-positive">↗ +12%</div>
+            <div className="value">{stats?.stats?.totalProducts ?? 0}</div>
+            {(() => {
+              const c = formatPctChange(stats?.stats?.productsChangePct);
+              return <div className={`stat-change ${c.className}`}>{c.text}</div>;
+            })()}
           </div>
           <div className="stat-icon stat-icon-blue"><StatBoxIcon /></div>
         </div>
         <div className="stat-card stat-card-green">
           <div className="stat-content">
             <h4>Total Orders</h4>
-            <div className="value">{stats?.stats?.totalOrders || 856}</div>
-            <div className="stat-change stat-positive">↗ +8%</div>
+            <div className="value">{stats?.stats?.totalOrders ?? 0}</div>
+            {(() => {
+              const c = formatPctChange(stats?.stats?.ordersChangePct);
+              return <div className={`stat-change ${c.className}`}>{c.text}</div>;
+            })()}
           </div>
           <div className="stat-icon stat-icon-green"><StatCartIcon /></div>
         </div>
         <div className="stat-card stat-card-purple">
           <div className="stat-content">
             <h4>Total Users</h4>
-            <div className="value">{stats?.stats?.totalUsers || 342}</div>
-            <div className="stat-change stat-positive">↗ +5%</div>
+            <div className="value">{stats?.stats?.totalUsers ?? 0}</div>
+            {(() => {
+              const c = formatPctChange(stats?.stats?.usersChangePct);
+              return <div className={`stat-change ${c.className}`}>{c.text}</div>;
+            })()}
           </div>
           <div className="stat-icon stat-icon-purple"><StatUsersIcon /></div>
         </div>
         <div className="stat-card stat-card-orange">
           <div className="stat-content">
             <h4>Revenue</h4>
-            <div className="value">${stats?.stats?.totalRevenue?.toLocaleString() || '45,678'}</div>
-            <div className="stat-change stat-negative">↘ -3%</div>
+            <div className="value">${Number(stats?.stats?.totalRevenue ?? 0).toLocaleString()}</div>
+            {(() => {
+              const c = formatPctChange(stats?.stats?.revenueChangePct);
+              return <div className={`stat-change ${c.className}`}>{c.text}</div>;
+            })()}
           </div>
           <div className="stat-icon stat-icon-orange"><span className="stat-icon-dollar">$</span></div>
         </div>
@@ -119,8 +142,8 @@ const Dashboard = () => {
                   stats.recentOrders.slice(0, 5).map((order) => (
                     <tr key={order.id}>
                       <td>{order.order_number}</td>
-                      <td>{order.customer_name}</td>
-                      <td>${parseFloat(order.total).toFixed(2)}</td>
+                      <td>{order.customer_name || order?.user?.name || '—'}</td>
+                      <td>${Number(order.total || 0).toFixed(2)}</td>
                       <td>
                         <span className={`badge ${getStatusClass(order.order_status)}`}>
                           {order.order_status}
@@ -129,38 +152,11 @@ const Dashboard = () => {
                     </tr>
                   ))
                 ) : (
-                  <>
-                    <tr>
-                      <td>ORD-001</td>
-                      <td>John Doe</td>
-                      <td>$234.50</td>
-                      <td><span className="badge badge-success">Completed</span></td>
-                    </tr>
-                    <tr>
-                      <td>ORD-002</td>
-                      <td>Jane Smith</td>
-                      <td>$145.00</td>
-                      <td><span className="badge badge-warning">Pending</span></td>
-                    </tr>
-                    <tr>
-                      <td>ORD-003</td>
-                      <td>Bob Johnson</td>
-                      <td>$567.89</td>
-                      <td><span className="badge badge-info">Processing</span></td>
-                    </tr>
-                    <tr>
-                      <td>ORD-004</td>
-                      <td>Alice Brown</td>
-                      <td>$89.99</td>
-                      <td><span className="badge badge-success">Completed</span></td>
-                    </tr>
-                    <tr>
-                      <td>ORD-005</td>
-                      <td>Charlie Wilson</td>
-                      <td>$432.10</td>
-                      <td><span className="badge badge-shipped">Shipped</span></td>
-                    </tr>
-                  </>
+                  <tr>
+                    <td colSpan="4" style={{ opacity: 0.75 }}>
+                      No recent orders yet.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
@@ -175,57 +171,16 @@ const Dashboard = () => {
                 <div className="low-stock-item" key={product.id}>
                   <div className="low-stock-info">
                     <div className="product-name">{product.name}</div>
-                    <div className="product-category">{product.category || 'Electronics'}</div>
+                    <div className="product-category">{product?.category?.name || product?.category_name || '—'}</div>
                   </div>
                   <div className="low-stock-status">
-                    <div className="stock-count">Stock: {product.quantity}</div>
+                    <div className="stock-count">Stock: {product.quantity ?? 0}</div>
                     <div className="stock-label">Low</div>
                   </div>
                 </div>
               ))
             ) : (
-              <>
-                <div className="low-stock-item">
-                  <div className="low-stock-info">
-                    <div className="product-name">iPhone 14 Pro</div>
-                    <div className="product-category">Electronics</div>
-                  </div>
-                  <div className="low-stock-status">
-                    <div className="stock-count">Stock: 5</div>
-                    <div className="stock-label">Low</div>
-                  </div>
-                </div>
-                <div className="low-stock-item">
-                  <div className="low-stock-info">
-                    <div className="product-name">Nike Air Max</div>
-                    <div className="product-category">Footwear</div>
-                  </div>
-                  <div className="low-stock-status">
-                    <div className="stock-count">Stock: 3</div>
-                    <div className="stock-label">Low</div>
-                  </div>
-                </div>
-                <div className="low-stock-item">
-                  <div className="low-stock-info">
-                    <div className="product-name">Samsung TV 55"</div>
-                    <div className="product-category">Electronics</div>
-                  </div>
-                  <div className="low-stock-status">
-                    <div className="stock-count">Stock: 2</div>
-                    <div className="stock-label">Low</div>
-                  </div>
-                </div>
-                <div className="low-stock-item">
-                  <div className="low-stock-info">
-                    <div className="product-name">Coffee Maker</div>
-                    <div className="product-category">Appliances</div>
-                  </div>
-                  <div className="low-stock-status">
-                    <div className="stock-count">Stock: 4</div>
-                    <div className="stock-label">Low</div>
-                  </div>
-                </div>
-              </>
+              <div style={{ opacity: 0.75, padding: '8px 0' }}>No low-stock products.</div>
             )}
           </div>
         </div>

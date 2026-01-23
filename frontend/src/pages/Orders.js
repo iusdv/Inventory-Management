@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api from '../services/api';
 
 const Orders = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -65,7 +67,11 @@ const Orders = () => {
             </thead>
             <tbody>
               {filteredOrders.map((order) => (
-                <tr key={order.id}>
+                <tr
+                  key={order.id}
+                  onClick={() => navigate(`/orders/${order.id}`)}
+                  style={{ cursor: 'pointer' }}
+                >
                   <td>{order.order_number}</td>
                   <td>{order.customer_name}</td>
                   <td>{order.created_at ? new Date(order.created_at).toLocaleDateString() : 'N/A'}</td>
@@ -73,7 +79,16 @@ const Orders = () => {
                   <td>${parseFloat(order.total || 0).toFixed(2)}</td>
                   <td><span className={`badge ${getStatusClass(order.order_status)}`}>{order.order_status}</span></td>
                   <td className="action-icons">
-                    <button className="icon-btn" title="View">👁️</button>
+                    <button
+                      className="icon-btn"
+                      title="View"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/orders/${order.id}`);
+                      }}
+                    >
+                      👁️
+                    </button>
                   </td>
                 </tr>
               ))}
