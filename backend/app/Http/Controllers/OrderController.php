@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Services\Orders\OrderTotalsCalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class OrderController extends Controller
 {
+    public function __construct(private readonly OrderTotalsCalculator $totalsCalculator)
+    {
+    }
+
     public function index()
     {
         $orders = Order::with(['user', 'store', 'orderItems.product'])
@@ -37,14 +42,8 @@ class OrderController extends Controller
         ]);
 
         return DB::transaction(function () use ($request) {
-            $subtotal = 0;
-            foreach ($request->items as $item) {
-                $subtotal += $item['quantity'] * $item['price'];
-            }
-
-            $tax = $subtotal * 0.1; // 10% tax
-            $discount = $request->discount ?? 0;
-            $total = $subtotal + $tax - $discount;
+            $discount = (float) ($request->discount ?? 0);
+            $totals = $this->totalsCalculator->calculate($request->items, 0.1, $discount);
 
             $order = Order::create([
                 'order_number' => 'ORD-' . time() . '-' . rand(1000, 9999),
@@ -54,10 +53,10 @@ class OrderController extends Controller
                 'customer_email' => $request->customer_email,
                 'customer_phone' => $request->customer_phone,
                 'customer_address' => $request->customer_address,
-                'subtotal' => $subtotal,
-                'tax' => $tax,
-                'discount' => $discount,
-                'total' => $total,
+                'subtotal' => $totals['subtotal'],
+                'tax' => $totals['tax'],
+                'discount' => $totals['discount'],
+                'total' => $totals['total'],
                 'payment_method' => $request->payment_method,
                 'payment_status' => $request->payment_status ?? 'pending',
                 'order_status' => 'pending',

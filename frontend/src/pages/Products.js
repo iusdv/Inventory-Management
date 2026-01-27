@@ -139,6 +139,7 @@ const Products = () => {
 
   return (
     <div>
+      <div className="breadcrumb">🏠 Home / Products</div>
       <div className="card">
         <div className="card-header">
           <h3>Products</h3>

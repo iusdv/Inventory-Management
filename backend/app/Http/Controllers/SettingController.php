@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Setting;
+use App\Services\Settings\SettingValueType;
 use Illuminate\Http\Request;
 
 class SettingController extends Controller
@@ -40,12 +41,7 @@ class SettingController extends Controller
                 continue;
             }
 
-            $type = match (true) {
-                is_bool($value) => 'boolean',
-                is_int($value), is_float($value) => 'number',
-                is_array($value) => 'json',
-                default => 'string',
-            };
+            $type = SettingValueType::detect($value);
 
             Setting::updateOrCreate(
                 ['key' => $key],

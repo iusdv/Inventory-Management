@@ -78,6 +78,7 @@ const Categories = () => {
 
   return (
     <div>
+      <div className="breadcrumb">🏠 Home / Categories</div>
       <div className="card">
         <div className="card-header">
           <h3>Categories Management</h3>

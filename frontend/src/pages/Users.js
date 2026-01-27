@@ -151,6 +151,7 @@ const Users = () => {
 
   return (
     <div>
+      <div className="breadcrumb">🏠 Home / Users</div>
       <div className="card">
         <div className="card-header">
           <h3>Users Management</h3>

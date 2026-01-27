@@ -4,12 +4,17 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Services\Reports\RevenuePeriodExpressionBuilder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
 
 class ReportController extends Controller
 {
+    public function __construct(private readonly RevenuePeriodExpressionBuilder $periodExpressionBuilder)
+    {
+    }
+
     private function applyOrderScope($query, Request $request)
     {
         // scope=paid (default) OR scope=completed
@@ -139,29 +144,9 @@ class ReportController extends Controller
     {
         $period = $request->get('period', 'month');
         $limit = (int) $request->get('limit', 12);
-        
-        $driver = DB::getDriverName();
-        $periodExpr = null;
 
-        if ($driver === 'sqlite') {
-            $dateFormat = match ($period) {
-                'day' => '%Y-%m-%d',
-                'week' => '%Y-%W',
-                'month' => '%Y-%m',
-                'year' => '%Y',
-                default => '%Y-%m',
-            };
-            $periodExpr = "strftime('$dateFormat', created_at)";
-        } else {
-            $dateFormat = match ($period) {
-                'day' => '%Y-%m-%d',
-                'week' => '%Y-%u',
-                'month' => '%Y-%m',
-                'year' => '%Y',
-                default => '%Y-%m',
-            };
-            $periodExpr = "DATE_FORMAT(created_at, '$dateFormat')";
-        }
+        $driver = DB::getDriverName();
+        $periodExpr = $this->periodExpressionBuilder->build($driver, (string) $period);
 
         $query = Order::query()
             ->select(
