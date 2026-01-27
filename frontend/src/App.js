@@ -10,8 +10,11 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
 import Users from './pages/Users';
+import Categories from "./pages/Categories";
 import Products from './pages/Products';
-import { Groups, Brands, Categories, Stores, Attributes, Orders, Reports, Company, Profile, Settings } from './pages';
+import ProductDetails from './pages/ProductDetails';
+import OrderDetails from './pages/OrderDetails';
+import { Roles, Brands, Stores, Attributes, Orders, Reports, Company, Profile, Settings } from './pages';
 
 function App() {
   return (
@@ -33,13 +36,15 @@ function App() {
                       <Route path="/" element={<Navigate to="/dashboard" />} />
                       <Route path="/dashboard" element={<Dashboard />} />
                       <Route path="/users" element={<Users />} />
-                      <Route path="/groups" element={<Groups />} />
+                      <Route path="/roles" element={<Roles />} />
                       <Route path="/brands" element={<Brands />} />
                       <Route path="/categories" element={<Categories />} />
                       <Route path="/stores" element={<Stores />} />
                       <Route path="/attributes" element={<Attributes />} />
                       <Route path="/products" element={<Products />} />
+                      <Route path="/products/:id" element={<ProductDetails />} />
                       <Route path="/orders" element={<Orders />} />
+                      <Route path="/orders/:id" element={<OrderDetails />} />
                       <Route path="/reports" element={<Reports />} />
                       <Route path="/company" element={<Company />} />
                       <Route path="/profile" element={<Profile />} />

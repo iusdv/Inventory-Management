@@ -20,8 +20,8 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'role',
         'group_id',
+        'role',
         'phone',
         'address',
         'status',
@@ -50,6 +50,11 @@ class User extends Authenticatable
     public function group()
     {
         return $this->belongsTo(Group::class);
+    }
+
+    public function role()
+    {
+        return $this->belongsTo(Group::class, 'group_id');
     }
 
     public function orders()

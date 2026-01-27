@@ -34,6 +34,9 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Groups
     Route::apiResource('groups', GroupController::class);
+
+    // Roles (alias of Groups)
+    Route::apiResource('roles', GroupController::class);
     
     // Brands
     Route::apiResource('brands', BrandController::class);
@@ -60,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Settings
     Route::get('/settings', [SettingController::class, 'index']);
+    Route::put('/settings', [SettingController::class, 'bulkUpdate']);
     Route::post('/settings', [SettingController::class, 'store']);
     Route::get('/settings/{key}', [SettingController::class, 'show']);
     Route::put('/settings/{key}', [SettingController::class, 'update']);

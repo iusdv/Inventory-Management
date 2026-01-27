@@ -13,10 +13,12 @@ class Attribute extends Model
         'name',
         'type',
         'values',
+        'status',
     ];
 
     protected $casts = [
         'values' => 'array',
+        'status' => 'boolean',
     ];
 
     public function products()

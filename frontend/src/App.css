@@ -195,6 +195,16 @@ code {
   overflow-x: auto;
 }
 
+/* Keep table links looking like plain text (except where explicitly styled) */
+.table-container a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.table-container a:hover {
+  text-decoration: underline;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -229,7 +239,7 @@ table tr:hover {
   font-weight: 500;
 }
 
-.form-group input,
+.form-group input:not([type="checkbox"]):not([type="radio"]),
 .form-group select,
 .form-group textarea {
   width: 100%;
@@ -239,11 +249,19 @@ table tr:hover {
   font-size: 14px;
 }
 
-.form-group input:focus,
+.form-group input:not([type="checkbox"]):not([type="radio"]):focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
   border-color: #3498db;
+}
+
+.form-group label input[type="checkbox"],
+.form-group label input[type="radio"] {
+  width: auto;
+  padding: 0;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 /* Auth Pages */
@@ -316,30 +334,27 @@ table tr:hover {
 /* Badge */
 .badge {
   display: inline-block;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 6px 14px;
+  border-radius: 20px;
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
+  color: white;
 }
 
 .badge-success {
-  background-color: #d4edda;
-  color: #155724;
+  background-color: #00d166;
 }
 
 .badge-warning {
-  background-color: #fff3cd;
-  color: #856404;
+  background-color: #ffc107;
 }
 
 .badge-danger {
-  background-color: #f8d7da;
-  color: #721c24;
+  background-color: #dc3545;
 }
 
 .badge-info {
-  background-color: #d1ecf1;
-  color: #0c5460;
+  background-color: #4285f4;
 }
 
 /* Loading */
@@ -365,4 +380,438 @@ table tr:hover {
   padding: 12px;
   border-radius: 4px;
   margin-bottom: 20px;
+}
+/* Wrapper styling for label + toggle alignment */
+.switch-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* The switch itself */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 50px;
+  height: 26px;
+}
+
+/* Hide default checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* Slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  transition: 0.4s;
+  border-radius: 34px;
+}
+
+/* Circle inside the slider */
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  transition: 0.4s;
+  border-radius: 50%;
+}
+
+/* When checked */
+.switch input:checked + .slider {
+  background-color: #007bff;
+}
+
+/* Move the circle */
+.switch input:checked + .slider:before {
+  transform: translateX(24px);
+}
+
+/* Optional label text */
+.switch-label {
+  font-weight: 500;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  color: #6c757d;
+  font-size: 14px;
+  margin-bottom: 20px;
+}
+
+/* Search Row */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.search-row span {
+  color: #6c757d;
+}
+
+.search-input {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  width: 250px;
+}
+
+/* Action Icons */
+.action-icons {
+  display: flex;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  font-size: 16px;
+  transition: transform 0.2s;
+}
+
+.icon-btn:hover {
+  transform: scale(1.2);
+}
+
+.icon-btn.delete:hover {
+  color: #e74c3c;
+}
+
+/* Text Colors */
+.text-primary {
+  color: #3498db;
+}
+
+.text-warning {
+  color: #f39c12;
+}
+
+/* Badge for shipped status */
+.badge-shipped {
+  background-color: #a855f7;
+  color: white;
+}
+
+/* Charts Grid */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.chart-card {
+  padding: 20px;
+}
+
+.chart-card h4 {
+  margin: 0 0 15px;
+  color: #2c3e50;
+}
+
+/* Reports Header */
+.reports-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.reports-header h3 {
+  margin: 0;
+  color: #2c3e50;
+}
+
+.period-select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: white;
+}
+
+/* Form Row (2 columns) */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Company/Profile Forms */
+.company-form,
+.profile-form,
+.password-form {
+  max-width: 600px;
+}
+
+/* Profile Photo Section */
+.profile-photo-section {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.profile-avatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.photo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.photo-hint {
+  font-size: 12px;
+  color: #6c757d;
+}
+
+/* Disabled Input */
+.disabled-input {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+}
+
+/* Section Divider */
+.section-divider {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid #e0e0e0;
+}
+
+/* Dashboard Styles */
+.dashboard-header {
+  margin-bottom: 20px;
+}
+
+.dashboard-header h2 {
+  margin: 0 0 5px;
+  color: #2c3e50;
+}
+
+.dashboard-subtitle {
+  margin: 0;
+  color: #6c757d;
+  font-size: 14px;
+}
+
+/* Stats Cards with Icons */
+.stat-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  position: relative;
+}
+
+.stat-content {
+  flex: 1;
+}
+
+.stat-content h4 {
+  margin: 0 0 8px;
+  color: #6c757d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.stat-content .value {
+  margin-bottom: 5px;
+}
+
+.stat-change {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.stat-positive {
+  color: #27ae60;
+}
+
+.stat-negative {
+  color: #e74c3c;
+}
+
+.stat-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.stat-icon svg {
+  width: 28px;
+  height: 28px;
+  display: block;
+}
+
+.stat-icon-dollar {
+  font-size: 30px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.stat-icon-blue {
+  background-color: #2f80ed;
+}
+
+.stat-icon-green {
+  background-color: #00c853;
+}
+
+.stat-icon-purple {
+  background-color: #9b51e0;
+}
+
+.stat-icon-orange {
+  background-color: #ff6b00;
+}
+
+/* Dashboard Grid (side-by-side) */
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Low Stock List */
+.low-stock-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.low-stock-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px;
+  background-color: #fff5f5;
+  border-radius: 8px;
+}
+
+.low-stock-info {
+  flex: 1;
+}
+
+.product-name {
+  font-weight: 500;
+  color: #2c3e50;
+  margin-bottom: 4px;
+}
+
+.product-category {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.low-stock-status {
+  text-align: right;
+}
+
+.stock-count {
+  color: #e74c3c;
+  font-weight: 500;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.stock-label {
+  color: #e74c3c;
+  font-size: 12px;
+}
+
+@media (max-width: 768px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Settings Page */
+.settings-card h3 {
+  margin-top: 0;
+}
+
+.settings-section-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2c3e50;
+  margin: 18px 0 12px;
+}
+
+.settings-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.settings-row-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.settings-desc {
+  font-size: 13px;
+  color: #6c757d;
+}
+
+.settings-divider {
+  height: 1px;
+  background: #eaeaea;
+  margin: 18px 0;
+}
+
+.settings-select-row {
+  margin: 14px 0;
+}
+
+.settings-select {
+  width: 100%;
+  max-width: 520px;
+  padding: 10px 12px;
+  border: 1px solid #e6e6e6;
+  border-radius: 8px;
+  background: #f5f5f7;
+  margin-top: 8px;
+}
+
+.settings-actions {
+  margin-top: 18px;
 }
