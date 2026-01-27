@@ -2,17 +2,26 @@ name: Code Quality
 
 on:
   push:
-    branches: [ main, master, develop ]
+    branches:
+      - main
+      - develop
+      - staging
+      - "feature/**"
+      - "hotfix/**"
+
   pull_request:
+    branches:
+      - main
+      - develop
+      - staging
+    types: [opened, synchronize, reopened, ready_for_review]
+
+  workflow_dispatch:
 
 jobs:
   backend-php-quality:
-    name: Backend (PHP) quality checks
+    name: Backend (PHP) quality checks + tests
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: backend
 
     steps:
       - name: Checkout
@@ -25,31 +34,41 @@ jobs:
           tools: composer:v2
           coverage: none
 
-      - name: Cache Composer
+      - name: Cache Composer vendor
         uses: actions/cache@v4
         with:
-          path: vendor
-          key: ${{ runner.os }}-php-${{ hashFiles('backend/composer.lock') }}
+          path: backend/vendor
+          key: ${{ runner.os }}-php-vendor-${{ hashFiles('backend/composer.lock') }}
           restore-keys: |
-            ${{ runner.os }}-php-
+            ${{ runner.os }}-php-vendor-
 
       - name: Install Composer dependencies
+        working-directory: backend
         run: composer install --no-interaction --no-progress --prefer-dist
 
       - name: Composer validate
+        working-directory: backend
         run: composer validate --no-interaction --strict
 
       - name: PHP syntax check (lint)
+        working-directory: backend
         run: |
           find . -type f -name "*.php" -not -path "./vendor/*" -print0 | xargs -0 -n1 -P4 php -l
+
+      - name: Run Laravel unit + feature tests
+        working-directory: backend
+        env:
+          APP_ENV: testing
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: |
+          if [ -f ".env.example" ] && [ ! -f ".env" ]; then cp .env.example .env; fi
+          php artisan key:generate --force
+          php artisan test --no-interaction
 
   frontend-react-build:
     name: Frontend (React) build
     runs-on: ubuntu-latest
-
-    defaults:
-      run:
-        working-directory: frontend
 
     steps:
       - name: Checkout
@@ -63,7 +82,9 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
-        run: npm install
+        working-directory: frontend
+        run: npm ci
 
       - name: Build
+        working-directory: frontend
         run: npm run build
